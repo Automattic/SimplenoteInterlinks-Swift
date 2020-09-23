@@ -14,7 +14,7 @@ jobs:
     steps:
       - git/shallow-checkout
       - ios/test:
-          xcode-version: "2.0"
+          xcode-version: "12.0"
           scheme: SimplenoteInterlinks
           device: iPhone 11
 
