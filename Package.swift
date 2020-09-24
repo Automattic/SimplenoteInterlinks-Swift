@@ -19,8 +19,7 @@ let package = Package(
         .package(
             name: "SimplenoteFoundation",
             url: "https://github.com/Automattic/SimplenoteFoundation-Swift",
-            from: "1.0.0"
-//            .branch("issue/range-extensions")
+            .branch("issue/range-extensions")
         )
     ],
     targets: [
