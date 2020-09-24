@@ -1,4 +1,5 @@
 import Foundation
+import SimplenoteFoundation
 
 
 // MARK: - String + Interlinking API(s)
@@ -8,22 +9,24 @@ extension String {
     /// Returns the Interlink Keyword at the receiver's location, if any.
     ///
     /// - Parameters:
-    ///     - location: Location to analyze
+    ///     - index: String.Index at which we should perform our analysis
     ///     - opening: Opening Keyword Character
     ///     - closing: Closing Keyword Character
     ///
     /// - Returns: Keyword, if any.
-    /// - Note: This API extracts the keyword at a given location, with this shape: `[keyword`.
+    /// - Note: This API extracts the keyword at a given String.Index, with this shape: `[keyword`.
     /// - Important: If a closing character is found on the right hand side, this API returns nil
     ///
-    public func interlinkKeyword(at location: String.Index, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
-        guard let (lineRange, lineText) = line(at: location),
-              let locationInLine = relativeIndex(for: lineText, in: lineRange, at: location)
-        else {
-            return nil
-        }
+    public func interlinkKeyword(at index: String.Index, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
+        // Step #0: Determine the Line where we're standing
+        let (lineRange, lineText) = line(at: index)
 
+        // Step #1: Determine the relative String.Index, with regards of the line of text we're analyzing
+        let locationInLine = transportIndex(index, to: lineRange, in: lineText)
+
+        // Step #2: Split + Analyzer
         let (lhs, rhs) = lineText.split(at: locationInLine)
+
         guard rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) == false else {
             return nil
         }
@@ -32,8 +35,9 @@ extension String {
             return nil
         }
 
-        let absoluteIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
-        let absoluteRange = range(at: absoluteIndex, length: keywordText.count)
+        // Step #3: keywordStartIndex = Line Start + Keyword Start
+        let absoluteIndex = self.index(lineRange.lowerBound, offsetBy: lhs.distance(from: lhs.startIndex, to: keywordIndex))
+        let absoluteRange = absoluteIndex ..< self.index(absoluteIndex, offsetBy: keywordText.count)
 
         return (absoluteRange, keywordText)
     }
@@ -89,49 +93,16 @@ extension String {
         return (lhs, rhs)
     }
 
-    /// Converts a Location (expressed as Integer) into a String.Index
-    ///
-    func index(for location: Int) -> String.Index? {
-        guard let unicodeLocation = utf16.index(utf16.startIndex, offsetBy: location, limitedBy: utf16.endIndex),
-            let location = unicodeLocation.samePosition(in: self) else {
-                return nil
-        }
-
-        return location
-    }
-
-    /// Converts a String.Index into a Location (expressed as integer)
-    ///
-    func location(for index: String.Index) -> Int {
-        return distance(from: startIndex, to: index)
-    }
-
-    /// Returns the `Range<String.Index>` for a Substring at the specified location
-    ///
-    func range(at index: String.Index, length: Int) -> Range<String.Index> {
-        index ..< self.index(index, offsetBy: length)
-    }
-
-    /// Maps a `String.Index`, in terms of the receiver, into an index contstrained by the specified substring
-    ///
-    func relativeIndex(for substring: String, in range: Range<String.Index>, at index: String.Index) -> String.Index? {
-        let delta = distance(from: startIndex, to: index) - distance(from: startIndex, to: range.lowerBound)
-        return substring.index(for: delta)
-    }
-
     /// Returns a tuple with `(Range, Text)` of the Line at the specified location
     ///
-    func line(at location: String.Index) -> (Range<String.Index>, String)? {
-        guard let range = rangeOfLine(at: location) else {
-            return nil
-        }
-
+    func line(at index: String.Index) -> (Range<String.Index>, String) {
+        let range = rangeOfLine(at: index)
         return (range, String(self[range]))
     }
 
     /// Returns the range of the line at the specified `String.Index`
     ///
-    func rangeOfLine(at location: String.Index) -> Range<String.Index>? {
-        lineRange(for: location..<location)
+    func rangeOfLine(at index: String.Index) -> Range<String.Index> {
+        lineRange(for: index..<index)
     }
 }
