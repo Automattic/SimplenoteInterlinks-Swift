@@ -34,12 +34,12 @@ class StringInterlinkTests: XCTestCase {
         for location in locationOfKeyword...text.count {
             let currentIndex = text.index(for: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
-            guard let (resultingKeywordIndex, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
+            guard let (resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
                 continue
             }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
-            XCTAssertEqual(resultingKeywordIndex, text.location(for: rangeOfKeyword.lowerBound))
+            XCTAssertEqual(expectedKeywordSlice, String(text[resultingKeywordRange]))
         }
     }
 
@@ -73,12 +73,12 @@ class StringInterlinkTests: XCTestCase {
         for location in keywordStart...keywordEnd {
             let currentIndex = text.index(for: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
-            guard let (resultingKeywordIndex, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
+            guard let (resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
                 continue
             }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
-            XCTAssertEqual(resultingKeywordIndex, text.location(for: rangeOfKeyword.lowerBound))
+            XCTAssertEqual(expectedKeywordSlice, String(text[resultingKeywordRange]))
         }
     }
 

@@ -16,7 +16,7 @@ extension String {
     /// - Note: This API extracts the keyword at a given location, with this shape: `[keyword`.
     /// - Important: If a closing character is found on the right hand side, this API returns nil
     ///
-    public func interlinkKeyword(at location: Int, opening: Character = Character("["), closing: Character = Character("]")) -> (Int, String)? {
+    public func interlinkKeyword(at location: Int, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
         guard let (lineRange, lineText) = line(at: location) else {
             return nil
         }
@@ -31,8 +31,11 @@ extension String {
             return nil
         }
 
-        let absoluteKeywordLocation = self.location(for: lineRange.lowerBound) + lhs.location(for: keywordIndex)
-        return (absoluteKeywordLocation, keywordText)
+        let keywordAbsoluteStartIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
+        let keywordAbsoluteEndIndex = index(keywordAbsoluteStartIndex, offsetBy: keywordText.count)
+        let keywordAbsoluteRange = keywordAbsoluteStartIndex ..< keywordAbsoluteEndIndex
+
+        return (keywordAbsoluteRange, keywordText)
     }
 
     /// Returns **true** whenever the receiver contains an unbalanced Closing Character
