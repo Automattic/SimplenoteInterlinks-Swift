@@ -5,9 +5,9 @@
         "package": "SimplenoteFoundation",
         "repositoryURL": "https://github.com/Automattic/SimplenoteFoundation-Swift",
         "state": {
-          "branch": "issue/range-extensions",
-          "revision": "d0f6fb53f9d828506744770204ee70745637fba2",
-          "version": null
+          "branch": null,
+          "revision": "c5938f97ba6c041ae4c0f4030493f628f2263a41",
+          "version": "1.0.0"
         }
       }
     ]
