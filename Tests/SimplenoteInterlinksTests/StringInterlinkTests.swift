@@ -233,6 +233,19 @@ class StringInterlinkTests: XCTestCase {
     }
 
 
+    /// Verifies that `rangeOfSubstring` properly builds a `Range<String.Index>` for the substring at the specified Location
+    ///
+    func testRangeOfSubstringAtLocationReturnsTheSwiftRangeForSomeSubstringAtTheSpecifiedLocation() {
+        let text = "Hello 🇮🇳 World 🌎!"
+        let substring = "🌎"
+
+        let expectedRange = text.range(of: substring)!
+        let location = text.location(for: expectedRange.lowerBound)
+
+        let resultingRange = text.rangeOfSubstring(at: location, length: substring.count)
+        XCTAssertEqual(expectedRange, resultingRange)
+    }
+
 
     /// Verifies that `relativeLocation(for: in:)` does not alter the Location, whenever the specified Range covers the full string
     ///

@@ -31,9 +31,8 @@ extension String {
             return nil
         }
 
-        let keywordStartIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
-        let keywordEndIndex = index(keywordStartIndex, offsetBy: keywordText.count)
-        let keywordRange = keywordStartIndex ..< keywordEndIndex
+        let keywordLocation = self.location(for: lineRange.lowerBound) + lhs.location(for: keywordIndex)
+        let keywordRange = rangeOfSubstring(at: keywordLocation, length: keywordText.count)
 
         return (keywordRange, keywordText)
     }
@@ -73,7 +72,6 @@ extension String {
             return nil
         }
 
-
         let keywordIndex = index(lastOpeningCharacterIndex, offsetBy: 1)
         let keywordString = self[keywordIndex..<endIndex]
         if keywordString.contains(closing) || keywordString.isEmpty {
@@ -103,6 +101,15 @@ extension String {
     ///
     func location(for index: String.Index) -> Int {
         return distance(from: startIndex, to: index)
+    }
+
+    /// Returns the `Range<String.Index>` for a Substring at the specified location
+    ///
+    func rangeOfSubstring(at location: Int, length: Int) -> Range<String.Index> {
+        let substringStartIndex = index(for: location)
+        let substringEndIndex = index(substringStartIndex, offsetBy: length)
+
+        return substringStartIndex ..< substringEndIndex
     }
 
     /// Returns the Relative Location of a given Location, within the specified range.
