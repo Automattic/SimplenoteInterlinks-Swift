@@ -16,18 +16,23 @@ extension String {
     /// - Note: This API extracts the keyword at a given location, with this shape: `[keyword`.
     /// - Important: If a closing character is found on the right hand side, this API returns nil
     ///
-    public func interlinkKeyword(at location: Int, opening: Character = Character("["), closing: Character = Character("]")) -> String? {
+    public func interlinkKeyword(at location: Int, opening: Character = Character("["), closing: Character = Character("]")) -> (Int, String)? {
         guard let (lineRange, lineText) = line(at: location) else {
             return nil
         }
 
         let locationInLine = relativeLocation(for: location, in: lineRange)
         let (lhs, rhs) = lineText.split(at: locationInLine)
-        if rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) {
+        guard rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) == false else {
             return nil
         }
 
-        return lhs.trailingLookupKeyword(opening: opening, closing: closing)
+        guard let (keywordIndex, keywordText) = lhs.trailingLookupKeyword(opening: opening, closing: closing) else {
+            return nil
+        }
+
+        let absoluteKeywordLocation = self.location(for: lineRange.lowerBound) + lhs.location(for: keywordIndex)
+        return (absoluteKeywordLocation, keywordText)
     }
 
     /// Returns **true** whenever the receiver contains an unbalanced Closing Character
@@ -60,19 +65,19 @@ extension String {
     /// - Example: `Text [keyword`
     /// - Result: `keyword`
     ///
-    func trailingLookupKeyword(opening: Character, closing: Character) -> String? {
+    func trailingLookupKeyword(opening: Character, closing: Character) -> (String.Index, String)? {
         guard let lastOpeningCharacterIndex = lastIndex(of: opening) else {
             return nil
         }
 
 
-        let tailStart = index(lastOpeningCharacterIndex, offsetBy: 1)
-        let tailString = self[tailStart..<endIndex]
-        if tailString.contains(closing) || tailString.isEmpty {
+        let keywordIndex = index(lastOpeningCharacterIndex, offsetBy: 1)
+        let keywordString = self[keywordIndex..<endIndex]
+        if keywordString.contains(closing) || keywordString.isEmpty {
             return nil
         }
 
-        return String(tailString)
+        return (keywordIndex, String(keywordString))
     }
 
     /// Splits the receiver at the specified location

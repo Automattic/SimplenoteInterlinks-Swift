@@ -34,9 +34,12 @@ class StringInterlinkTests: XCTestCase {
         for location in locationOfKeyword...text.count {
             let currentIndex = text.index(for: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
-            let resultingKeywordSlice = text.interlinkKeyword(at: location) ?? ""
+            guard let (resultingKeywordIndex, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
+                continue
+            }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
+            XCTAssertEqual(resultingKeywordIndex, text.location(for: rangeOfKeyword.lowerBound))
         }
     }
 
@@ -70,9 +73,12 @@ class StringInterlinkTests: XCTestCase {
         for location in keywordStart...keywordEnd {
             let currentIndex = text.index(for: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
-            let resultingKeywordSlice = text.interlinkKeyword(at: location) ?? ""
+            guard let (resultingKeywordIndex, resultingKeywordSlice) = text.interlinkKeyword(at: location) else {
+                continue
+            }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
+            XCTAssertEqual(resultingKeywordIndex, text.location(for: rangeOfKeyword.lowerBound))
         }
     }
 
@@ -139,9 +145,15 @@ class StringInterlinkTests: XCTestCase {
     func testTrailingLookupKeywordReturnsTheKeywordAfterTheOpeningCharacter() {
         let keyword = "some keyword here"
         let text = "qwertyuiop [" + keyword
-        let result = text.trailingLookupKeyword(opening: "[", closing: "]")
+        let range = text.range(of: keyword)
 
-        XCTAssertEqual(result, keyword)
+        guard let (resultIndex, resultText) = text.trailingLookupKeyword(opening: "[", closing: "]") else {
+            XCTFail()
+            return
+        }
+
+        XCTAssertEqual(resultText, keyword)
+        XCTAssertEqual(range?.lowerBound, resultIndex)
     }
 
     /// Verifies that `trailingLookupKeyword(opening: closing)` returns the trailing `[lookup keyword`, whenever there's more than one keyword
@@ -151,9 +163,15 @@ class StringInterlinkTests: XCTestCase {
         let keyword2 = "the real keyword"
 
         let text = "qwertyuiop [" + keyword1 + "] asdfghjkl [" + keyword2
-        let result = text.trailingLookupKeyword(opening: "[", closing: "]")
+        let range = text.range(of: keyword2)
 
-        XCTAssertEqual(result, keyword2)
+        guard let (resultIndex, resultText) = text.trailingLookupKeyword(opening: "[", closing: "]") else {
+            XCTFail()
+            return
+        }
+
+        XCTAssertEqual(resultText, keyword2)
+        XCTAssertEqual(range?.lowerBound, resultIndex)
     }
 
     /// Verifies that `trailingLookupKeyword(opening: closing)` works as expected, when the receiver actually starts with the `[lookup keyword`
@@ -161,9 +179,15 @@ class StringInterlinkTests: XCTestCase {
     func testTrailingLookupKeywordWorksAsExpectedWheneverTheInputStringStartsWithTheOpeningCharacter() {
         let keyword = "some keyword here"
         let text = "[" + keyword
-        let result = text.trailingLookupKeyword(opening: "[", closing: "]")
+        let range = text.range(of: keyword)
 
-        XCTAssertEqual(result, keyword)
+        guard let (resultIndex, resultText) = text.trailingLookupKeyword(opening: "[", closing: "]") else {
+            XCTFail()
+            return
+        }
+
+        XCTAssertEqual(resultText, keyword)
+        XCTAssertEqual(range?.lowerBound, resultIndex)
     }
 
     /// Verifies that `trailingLookupKeyword(opening: closing)` returns nil whenever the receiver only contains an  opening character `[`
