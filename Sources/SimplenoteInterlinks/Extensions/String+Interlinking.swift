@@ -115,7 +115,7 @@ extension String {
         return location - self.location(for: range.lowerBound)
     }
 
-    /// Returns a touple with (Range, Text) of the Line at the specified location
+    /// Returns a tuple with `(Range, Text)` of the Line at the specified location
     ///
     func line(at location: Int) -> (Range<String.Index>, String)? {
         guard let range = rangeOfLine(at: location) else {
@@ -125,7 +125,7 @@ extension String {
         return (range, String(self[range]))
     }
 
-    /// Returns the range of the line at the specified location
+    /// Returns the range of the line at the specified `String.Index`
     ///
     func rangeOfLine(at location: Int) -> Range<String.Index>? {
         guard count >= location else {
