@@ -16,12 +16,13 @@ extension String {
     /// - Note: This API extracts the keyword at a given location, with this shape: `[keyword`.
     /// - Important: If a closing character is found on the right hand side, this API returns nil
     ///
-    public func interlinkKeyword(at location: Int, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
-        guard let (lineRange, lineText) = line(at: location) else {
+    public func interlinkKeyword(at location: String.Index, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
+        guard let (lineRange, lineText) = line(at: location),
+              let locationInLine = relativeIndex(for: lineText, in: lineRange, at: location)
+        else {
             return nil
         }
 
-        let locationInLine = relativeLocation(for: location, in: lineRange)
         let (lhs, rhs) = lineText.split(at: locationInLine)
         guard rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) == false else {
             return nil
@@ -31,10 +32,10 @@ extension String {
             return nil
         }
 
-        let keywordLocation = self.location(for: lineRange.lowerBound) + lhs.location(for: keywordIndex)
-        let keywordRange = rangeOfSubstring(at: keywordLocation, length: keywordText.count)
+        let absoluteIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
+        let absoluteRange = range(at: absoluteIndex, length: keywordText.count)
 
-        return (keywordRange, keywordText)
+        return (absoluteRange, keywordText)
     }
 
     /// Returns **true** whenever the receiver contains an unbalanced Closing Character
@@ -81,18 +82,22 @@ extension String {
 
     /// Splits the receiver at the specified location
     ///
-    func split(at location: Int) -> (String, String) {
-        let locationAsIndex = index(for: location)
-        let lhs = String(self[startIndex..<locationAsIndex])
-        let rhs = String(self[locationAsIndex..<endIndex])
+    func split(at location: String.Index) -> (String, String) {
+        let lhs = String(self[startIndex..<location])
+        let rhs = String(self[location..<endIndex])
 
         return (lhs, rhs)
     }
 
     /// Converts a Location (expressed as Integer) into a String.Index
     ///
-    func index(for location: Int) -> String.Index {
-        return index(startIndex, offsetBy: location)
+    func index(for location: Int) -> String.Index? {
+        guard let unicodeLocation = utf16.index(utf16.startIndex, offsetBy: location, limitedBy: utf16.endIndex),
+            let location = unicodeLocation.samePosition(in: self) else {
+                return nil
+        }
+
+        return location
     }
 
     /// Converts a String.Index into a Location (expressed as integer)
@@ -103,26 +108,20 @@ extension String {
 
     /// Returns the `Range<String.Index>` for a Substring at the specified location
     ///
-    func rangeOfSubstring(at location: Int, length: Int) -> Range<String.Index> {
-        let substringStartIndex = index(for: location)
-        let substringEndIndex = index(substringStartIndex, offsetBy: length)
-
-        return substringStartIndex ..< substringEndIndex
+    func range(at index: String.Index, length: Int) -> Range<String.Index> {
+        index ..< self.index(index, offsetBy: length)
     }
 
-    /// Returns the Relative Location of a given Location, within the specified range.
-    /// For instance:
-    /// - Location: 10
-    /// - Range: (Location = 10, Length = 10)
-    /// - Relative Location: Zero!
+    /// Maps a `String.Index`, in terms of the receiver, into an index contstrained by the specified substring
     ///
-    func relativeLocation(for location: Int, in range: Range<String.Index>) -> Int {
-        return location - self.location(for: range.lowerBound)
+    func relativeIndex(for substring: String, in range: Range<String.Index>, at index: String.Index) -> String.Index? {
+        let delta = distance(from: startIndex, to: index) - distance(from: startIndex, to: range.lowerBound)
+        return substring.index(for: delta)
     }
 
     /// Returns a tuple with `(Range, Text)` of the Line at the specified location
     ///
-    func line(at location: Int) -> (Range<String.Index>, String)? {
+    func line(at location: String.Index) -> (Range<String.Index>, String)? {
         guard let range = rangeOfLine(at: location) else {
             return nil
         }
@@ -132,12 +131,7 @@ extension String {
 
     /// Returns the range of the line at the specified `String.Index`
     ///
-    func rangeOfLine(at location: Int) -> Range<String.Index>? {
-        guard count >= location else {
-            return nil
-        }
-
-        let locationStartIndex = index(for: location)
-        return lineRange(for: locationStartIndex..<locationStartIndex)
+    func rangeOfLine(at location: String.Index) -> Range<String.Index>? {
+        lineRange(for: location..<location)
     }
 }
