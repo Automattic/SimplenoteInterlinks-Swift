@@ -31,11 +31,11 @@ extension String {
             return nil
         }
 
-        let keywordAbsoluteStartIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
-        let keywordAbsoluteEndIndex = index(keywordAbsoluteStartIndex, offsetBy: keywordText.count)
-        let keywordAbsoluteRange = keywordAbsoluteStartIndex ..< keywordAbsoluteEndIndex
+        let keywordStartIndex = index(lineRange.lowerBound, offsetBy: lhs.location(for: keywordIndex))
+        let keywordEndIndex = index(keywordStartIndex, offsetBy: keywordText.count)
+        let keywordRange = keywordStartIndex ..< keywordEndIndex
 
-        return (keywordAbsoluteRange, keywordText)
+        return (keywordRange, keywordText)
     }
 
     /// Returns **true** whenever the receiver contains an unbalanced Closing Character
