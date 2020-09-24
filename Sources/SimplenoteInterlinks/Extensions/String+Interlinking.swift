@@ -42,16 +42,14 @@ extension String {
     func containsUnbalancedClosingCharacter(opening: Character, closing: Character) -> Bool {
         var stack = [Character]()
 
-        for character in self {
+        for character in self.reversed() {
             switch character {
-            case opening:
+            case closing:
                 stack.append(character)
 
-            case closing where !stack.isEmpty:
+            case opening:
                 _ = stack.popLast()
-
-            case closing where stack.isEmpty:
-                return true
+                // Note: We *don't care* about unbalanced opening characters!
 
             default:
                 continue

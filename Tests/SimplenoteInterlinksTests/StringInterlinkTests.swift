@@ -86,10 +86,8 @@ class StringInterlinkTests: XCTestCase {
     ///
     func testContainsUnbalancedClosingCharacterReturnsTrueWhenTheReceiverContainsUnbalancedClosingCharacters() {
         let samples = [
-            "[][",
             "][]",
-            "[[]][",
-            "[[]]["
+            "[]]",
         ]
 
         for sample in samples {
@@ -105,6 +103,21 @@ class StringInterlinkTests: XCTestCase {
             "[[]]",
             "[[[]]]",
             "[][][]"
+        ]
+
+        for sample in samples {
+            XCTAssertFalse(sample.containsUnbalancedClosingCharacter(opening: Character("["), closing: Character("]")))
+        }
+    }
+
+    /// Verifies that `containsUnbalancedClosingCharacter` returns false whenever there are unbalanced Opening Characters, but not Closing
+    ///
+    func testContainsUnbalancedClosingCharacterReturnsFalseWhenThereAreOnlyUnblancedOpeningCharacters() {
+        let samples = [
+            "[",
+            "[][",
+            "[[]][",
+            "[[[]]][",
         ]
 
         for sample in samples {
