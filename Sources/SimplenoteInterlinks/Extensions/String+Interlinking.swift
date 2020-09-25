@@ -21,21 +21,29 @@ extension String {
         // Step #0: Determine the Line where we're standing
         let (lineRange, lineText) = line(at: index)
 
-        // Step #1: Determine the relative String.Index, with regards of the line of text we're analyzing
-        let locationInLine = transportIndex(index, to: lineRange, in: lineText)
-
-        // Step #2: Split + Analyzer
-        let (lhs, rhs) = lineText.split(at: locationInLine)
-
-        guard rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) == false else {
+        if lineText.isEmpty {
             return nil
         }
 
+        // Step #1: Determine the relative String.Index, with regards of the line of text we're analyzing
+        guard let indexInLine = transportIndex(index, to: lineRange, in: lineText) else {
+            return nil
+        }
+
+        // Step #2: Split the Line exactly at the position we're analyzing for Keywords
+        let (lhs, rhs) = lineText.split(at: indexInLine)
+
+        // Step #3: If the RHS contains an unbalanced `]`, we should not proceed
+        if rhs.containsUnbalancedClosingCharacter(opening: opening, closing: closing) {
+            return nil
+        }
+
+        // Step #4: Extract any keywords on the LHS of the cursor's Index
         guard let (keywordIndex, keywordText) = lhs.trailingLookupKeyword(opening: opening, closing: closing) else {
             return nil
         }
 
-        // Step #3: keywordStartIndex = Line Start + Keyword Start
+        // Step #5: keywordStartIndex = Line Start + Keyword Start
         let absoluteIndex = self.index(lineRange.lowerBound, offsetBy: lhs.distance(from: lhs.startIndex, to: keywordIndex))
         let absoluteRange = absoluteIndex ..< self.index(absoluteIndex, offsetBy: keywordText.count)
 
@@ -71,38 +79,15 @@ extension String {
     /// - Result: `keyword`
     ///
     func trailingLookupKeyword(opening: Character, closing: Character) -> (String.Index, String)? {
-        guard let lastOpeningCharacterIndex = lastIndex(of: opening) else {
+        guard let openingTailIndex = lastIndex(of: opening), let keywordIndex = index(openingTailIndex, offsetBy: 1, limitedBy: endIndex) else {
             return nil
         }
 
-        let keywordIndex = index(lastOpeningCharacterIndex, offsetBy: 1)
         let keywordString = self[keywordIndex..<endIndex]
         if keywordString.contains(closing) || keywordString.isEmpty {
             return nil
         }
 
         return (keywordIndex, String(keywordString))
-    }
-
-    /// Splits the receiver at the specified location
-    ///
-    func split(at location: String.Index) -> (String, String) {
-        let lhs = String(self[startIndex..<location])
-        let rhs = String(self[location..<endIndex])
-
-        return (lhs, rhs)
-    }
-
-    /// Returns a tuple with `(Range, Text)` of the Line at the specified location
-    ///
-    func line(at index: String.Index) -> (Range<String.Index>, String) {
-        let range = rangeOfLine(at: index)
-        return (range, String(self[range]))
-    }
-
-    /// Returns the range of the line at the specified `String.Index`
-    ///
-    func rangeOfLine(at index: String.Index) -> Range<String.Index> {
-        lineRange(for: index..<index)
     }
 }
