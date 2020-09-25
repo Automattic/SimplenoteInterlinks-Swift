@@ -39,15 +39,21 @@ extension String {
         }
 
         // Step #4: Extract any keywords on the LHS of the cursor's Index
-        guard let (keywordIndex, keywordText) = lhs.trailingLookupKeyword(opening: opening, closing: closing) else {
+        guard let (keywordIndexInLHS, keywordText) = lhs.trailingLookupKeyword(opening: opening, closing: closing) else {
             return nil
         }
 
         // Step #5: keywordStartIndex = Line Start + Keyword Start
-        let absoluteIndex = self.index(lineRange.lowerBound, offsetBy: lhs.distance(from: lhs.startIndex, to: keywordIndex))
-        let absoluteRange = absoluteIndex ..< self.index(absoluteIndex, offsetBy: keywordText.count)
+        let keywordIndex = self.index(lineRange.lowerBound, offsetBy: lhs.distance(from: lhs.startIndex, to: keywordIndexInLHS))
+        let keywordRange = range(for: keywordText, at: keywordIndex)
 
-        return (absoluteRange, keywordText)
+        return (keywordRange, keywordText)
+    }
+
+    /// Returns the Range for the specified Substring at a given Index
+    ///
+    func range(for substring: String, at substringIndex: String.Index) -> Range<String.Index> {
+        substringIndex ..< index(substringIndex, offsetBy: substring.count)
     }
 
     /// Returns **true** whenever the receiver contains an unbalanced Closing Character
