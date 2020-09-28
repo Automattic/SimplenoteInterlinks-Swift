@@ -13,9 +13,18 @@ let package = Package(
             name: "SimplenoteInterlinks",
             targets: ["SimplenoteInterlinks"]),
     ],
-    dependencies: [],
+    dependencies: [
+        // Here we define our package's external dependencies
+        // and from where they can be fetched:
+        .package(
+            name: "SimplenoteFoundation",
+            url: "https://github.com/Automattic/SimplenoteFoundation-Swift",
+            from: "1.1.0"
+        )
+    ],
     targets: [
         .target(name: "SimplenoteInterlinks",
+                dependencies: ["SimplenoteFoundation"],
                 path: "Sources/SimplenoteInterlinks"),
         .testTarget(name: "SimplenoteInterlinksTests",
                     dependencies: ["SimplenoteInterlinks"])
