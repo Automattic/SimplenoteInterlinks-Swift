@@ -33,14 +33,16 @@ class StringInterlinkTests: XCTestCase {
         for location in locationOfKeyword...text.count {
             let currentIndex = text.index(text.startIndex, offsetBy: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
+            let expectedMarkdownSlice = "[" + expectedKeywordSlice
 
-            guard let (resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: currentIndex) else {
+            guard let (resultingMarkdownRange, resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: currentIndex) else {
                 XCTFail()
                 continue
             }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
             XCTAssertEqual(expectedKeywordSlice, String(text[resultingKeywordRange]))
+            XCTAssertEqual(String(text[resultingMarkdownRange]), expectedMarkdownSlice)
         }
     }
 
@@ -75,14 +77,16 @@ class StringInterlinkTests: XCTestCase {
         for location in locationOfKeyword ... locationOfKeyword + keyword.count {
             let currentIndex = text.index(text.startIndex, offsetBy: location)
             let expectedKeywordSlice = String(text[rangeOfKeyword.lowerBound ..< currentIndex])
+            let expectedMarkdownSlice = "[" + expectedKeywordSlice
 
-            guard let (resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: currentIndex) else {
+            guard let (resultingMarkdownRange, resultingKeywordRange, resultingKeywordSlice) = text.interlinkKeyword(at: currentIndex) else {
                 XCTFail()
                 continue
             }
 
             XCTAssertEqual(resultingKeywordSlice, expectedKeywordSlice)
             XCTAssertEqual(expectedKeywordSlice, String(text[resultingKeywordRange]))
+            XCTAssertEqual(String(text[resultingMarkdownRange]), expectedMarkdownSlice)
         }
     }
 

@@ -13,11 +13,14 @@ extension String {
     ///     - opening: Opening Keyword Character
     ///     - closing: Closing Keyword Character
     ///
-    /// - Returns: Keyword, if any.
+    /// - Returns: (Markdown Range, Visual Range and Keyword Text).
+    ///            - Markdown: Contains the opening brace.
+    ///            - Visual: Text Range.
+    ///            - Keyword Text: The actual keyword text
     /// - Note: This API extracts the keyword at a given String.Index, with this shape: `[keyword`.
-    /// - Important: If a closing character is found on the right hand side, this API returns nil
+    /// - Important: If an (unbalanced) closing character is found on the right hand side, this API returns nil
     ///
-    public func interlinkKeyword(at index: String.Index, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, String)? {
+    public func interlinkKeyword(at index: String.Index, opening: Character = Character("["), closing: Character = Character("]")) -> (Range<String.Index>, Range<String.Index>, String)? {
         // Step #0: Determine the Line where we're standing
         let (lineRange, lineText) = line(at: index)
 
@@ -47,7 +50,11 @@ extension String {
         let keywordIndex = self.index(lineRange.lowerBound, offsetBy: lhs.distance(from: lhs.startIndex, to: keywordIndexInLHS))
         let keywordRange = range(for: keywordText, at: keywordIndex)
 
-        return (keywordRange, keywordText)
+        // Step #6: markdown
+        let markdownIndex = self.index(before: keywordIndex)
+        let markdownRange = markdownIndex ..< keywordRange.upperBound
+
+        return (markdownRange, keywordRange, keywordText)
     }
 
     /// Returns the Range for the specified Substring at a given Index
